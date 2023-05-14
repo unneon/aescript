@@ -71,3 +71,24 @@ fn div_number() {
     let state = run(&ast);
     assert_eq!(state["a"], 3);
 }
+
+#[test]
+fn equal_number() {
+    let ast = parse("a = 2 == 2\nb = 2 == 3\nc = 2 != 2\nd = 2 != 3");
+    let state = run(&ast);
+    assert_eq!(state["a"], true);
+    assert_eq!(state["b"], false);
+    assert_eq!(state["c"], false);
+    assert_eq!(state["d"], true);
+}
+
+#[test]
+fn equal_text() {
+    let ast =
+        parse("a = \"a\" == \"a\"\nb = \"a\" == \"b\"\nc = \"a\" != \"a\"\nd = \"a\" != \"b\"");
+    let state = run(&ast);
+    assert_eq!(state["a"], true);
+    assert_eq!(state["b"], false);
+    assert_eq!(state["c"], false);
+    assert_eq!(state["d"], true);
+}

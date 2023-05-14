@@ -2,9 +2,10 @@ use crate::ast::{BinaryOperator, Expression, Literal, Program, Statement};
 use nom::branch::alt;
 use nom::bytes::complete::{tag, take_until};
 use nom::character::complete::{alpha1, char, digit1, newline};
+use nom::error::Error;
 use nom::multi::separated_list0;
 use nom::sequence::delimited;
-use nom::IResult;
+use nom::{IResult, Parser};
 
 pub fn parse(code: &str) -> Program {
     let (code, program) = program(code).unwrap();
@@ -33,11 +34,19 @@ fn identifier(code: &str) -> IResult<&str, &str> {
 }
 
 fn expression(code: &str) -> IResult<&str, Expression> {
-    expression2(code)
+    expression4(code)
+}
+
+fn expression4(code: &str) -> IResult<&str, Expression> {
+    alt((comparison, expression3))(code)
+}
+
+fn expression3(code: &str) -> IResult<&str, Expression> {
+    alt((multiplication, expression2))(code)
 }
 
 fn expression2(code: &str) -> IResult<&str, Expression> {
-    alt((add, expression1))(code)
+    alt((addition, expression1))(code)
 }
 
 fn expression1(code: &str) -> IResult<&str, Expression> {
@@ -48,23 +57,57 @@ fn expression0(code: &str) -> IResult<&str, Expression> {
     alt((literal, variable))(code)
 }
 
-fn add(code: &str) -> IResult<&str, Expression> {
-    let (code, lhs) = expression1(code)?;
-    let (code, op) = delimited(char(' '), arithmetic_operator, char(' '))(code)?;
-    let (code, rhs) = expression1(code)?;
+fn binary_expression<'a>(
+    mut subexpression: impl Parser<&'a str, Expression<'a>, Error<&'a str>>,
+    operator: impl Parser<&'a str, BinaryOperator, Error<&'a str>>,
+    code: &'a str,
+) -> IResult<&'a str, Expression> {
+    let (code, lhs) = subexpression.parse(code)?;
+    let (code, op) = delimited(char(' '), operator, char(' '))(code)?;
+    let (code, rhs) = subexpression.parse(code)?;
     Ok((
         code,
         Expression::BinaryOperator(Box::new(lhs), op, Box::new(rhs)),
     ))
 }
 
-fn arithmetic_operator(code: &str) -> IResult<&str, BinaryOperator> {
-    let (code, op) = alt((char('+'), char('-'), char('*'), char('/')))(code)?;
+fn comparison(code: &str) -> IResult<&str, Expression> {
+    binary_expression(expression3, comparison_operator, code)
+}
+
+fn multiplication(code: &str) -> IResult<&str, Expression> {
+    binary_expression(expression2, multiplicative_operator, code)
+}
+
+fn addition(code: &str) -> IResult<&str, Expression> {
+    binary_expression(expression1, additive_operator, code)
+}
+
+fn comparison_operator(code: &str) -> IResult<&str, BinaryOperator> {
+    let (code, op) = alt((tag("=="), tag("!=")))(code)?;
+    let op = match op {
+        "==" => BinaryOperator::Equal,
+        "!=" => BinaryOperator::NotEqual,
+        _ => unreachable!(),
+    };
+    Ok((code, op))
+}
+
+fn multiplicative_operator(code: &str) -> IResult<&str, BinaryOperator> {
+    let (code, op) = alt((char('*'), char('/')))(code)?;
+    let op = match op {
+        '*' => BinaryOperator::Multiply,
+        '/' => BinaryOperator::Divide,
+        _ => unreachable!(),
+    };
+    Ok((code, op))
+}
+
+fn additive_operator(code: &str) -> IResult<&str, BinaryOperator> {
+    let (code, op) = alt((char('+'), char('-')))(code)?;
     let op = match op {
         '+' => BinaryOperator::Add,
         '-' => BinaryOperator::Subtract,
-        '*' => BinaryOperator::Multiply,
-        '/' => BinaryOperator::Divide,
         _ => unreachable!(),
     };
     Ok((code, op))

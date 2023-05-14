@@ -4,6 +4,15 @@ use crate::ast::{BinaryOperator, Expression, Literal, Program, Statement};
 use crate::interpreter::value::Value;
 use std::collections::HashMap;
 
+macro_rules! evalute_binary_expression {
+    ($vop:ident $vlhs:ident $vrhs:ident $($op:ident $lhs:ident $rhs:ident => $t:ident $e:expr,)*) => {
+        match ($vop, $vlhs, $vrhs) {
+            $((BinaryOperator::$op, Value::$lhs($vlhs), Value::$rhs($vrhs)) => Value::$t($e),)*
+            (op, lhs, rhs) => panic!("can't evaluate {lhs:?} {op:?} {rhs:?}"),
+        }
+    };
+}
+
 pub fn run<'a>(program: &'a Program<'a>) -> HashMap<&'a str, Value> {
     let mut state = HashMap::new();
     for statement in &program.statements {
@@ -21,23 +30,17 @@ pub fn evaluate(expression: &Expression, state: &HashMap<&str, Value>) -> Value 
         Expression::BinaryOperator(lhs, op, rhs) => {
             let lhs = evaluate(lhs, state);
             let rhs = evaluate(rhs, state);
-            match (op, lhs, rhs) {
-                (BinaryOperator::Add, Value::Number(lhs), Value::Number(rhs)) => {
-                    Value::Number(lhs + rhs)
-                }
-                (BinaryOperator::Add, Value::Text(lhs), Value::Text(rhs)) => {
-                    Value::Text(lhs + &rhs)
-                }
-                (BinaryOperator::Subtract, Value::Number(lhs), Value::Number(rhs)) => {
-                    Value::Number(lhs - rhs)
-                }
-                (BinaryOperator::Multiply, Value::Number(lhs), Value::Number(rhs)) => {
-                    Value::Number(lhs * rhs)
-                }
-                (BinaryOperator::Divide, Value::Number(lhs), Value::Number(rhs)) => {
-                    Value::Number(lhs / rhs)
-                }
-                (op, lhs, rhs) => panic!("can't evaluate {lhs:?} {op:?} {rhs:?}"),
+            evalute_binary_expression! {
+                op lhs rhs
+                Add Number Number => Number lhs + rhs,
+                Add Text Text => Text lhs + &rhs,
+                Subtract Number Number => Number lhs - rhs,
+                Multiply Number Number => Number lhs * rhs,
+                Divide Number Number => Number lhs / rhs,
+                Equal Number Number => Bool lhs == rhs,
+                Equal Text Text => Bool lhs == rhs,
+                NotEqual Number Number => Bool lhs != rhs,
+                NotEqual Text Text => Bool lhs != rhs,
             }
         }
         Expression::Literal(literal) => match literal {

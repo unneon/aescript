@@ -4,6 +4,8 @@ pub enum BinaryOperator {
     Subtract,
     Multiply,
     Divide,
+    Equal,
+    NotEqual,
 }
 
 pub enum Literal<'a> {
