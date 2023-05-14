@@ -65,7 +65,7 @@ pub fn evaluate(expression: &Expression, state: &HashMap<&str, Value>) -> Value 
             Literal::Text(text) => Value::Text((*text).to_owned()),
         },
         Expression::Member(object, member) => {
-            let object = evaluate(&object, state);
+            let object = evaluate(object, state);
             match (object, *member) {
                 (Value::Text(text), "length") => Value::Number(text.len() as f64),
                 (Value::Array(elements), "length") => Value::Number(elements.len() as f64),
