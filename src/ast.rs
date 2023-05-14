@@ -1,3 +1,11 @@
+#[derive(Debug)]
+pub enum BinaryOperator {
+    Add,
+    Subtract,
+    Multiply,
+    Divide,
+}
+
 pub enum Literal<'a> {
     Bool(bool),
     Number(f64),
@@ -5,7 +13,7 @@ pub enum Literal<'a> {
 }
 
 pub enum Expression<'a> {
-    Add(Box<Expression<'a>>, Box<Expression<'a>>),
+    BinaryOperator(Box<Expression<'a>>, BinaryOperator, Box<Expression<'a>>),
     Literal(Literal<'a>),
     Member(Box<Expression<'a>>, &'a str),
     Variable(&'a str),

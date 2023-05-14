@@ -50,3 +50,24 @@ fn add_text() {
     let state = run(&ast);
     assert_eq!(state["a"], "ab");
 }
+
+#[test]
+fn sub_number() {
+    let ast = parse("a = 13 - 8");
+    let state = run(&ast);
+    assert_eq!(state["a"], 5);
+}
+
+#[test]
+fn mul_number() {
+    let ast = parse("a = 2 * 3");
+    let state = run(&ast);
+    assert_eq!(state["a"], 6);
+}
+
+#[test]
+fn div_number() {
+    let ast = parse("a = 6 / 2");
+    let state = run(&ast);
+    assert_eq!(state["a"], 3);
+}

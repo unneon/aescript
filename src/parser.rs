@@ -1,4 +1,4 @@
-use crate::ast::{Expression, Literal, Program, Statement};
+use crate::ast::{BinaryOperator, Expression, Literal, Program, Statement};
 use nom::branch::alt;
 use nom::bytes::complete::{tag, take_until};
 use nom::character::complete::{alpha1, char, digit1, newline};
@@ -50,9 +50,24 @@ fn expression0(code: &str) -> IResult<&str, Expression> {
 
 fn add(code: &str) -> IResult<&str, Expression> {
     let (code, lhs) = expression1(code)?;
-    let (code, _) = tag(" + ")(code)?;
+    let (code, op) = delimited(char(' '), arithmetic_operator, char(' '))(code)?;
     let (code, rhs) = expression1(code)?;
-    Ok((code, Expression::Add(Box::new(lhs), Box::new(rhs))))
+    Ok((
+        code,
+        Expression::BinaryOperator(Box::new(lhs), op, Box::new(rhs)),
+    ))
+}
+
+fn arithmetic_operator(code: &str) -> IResult<&str, BinaryOperator> {
+    let (code, op) = alt((char('+'), char('-'), char('*'), char('/')))(code)?;
+    let op = match op {
+        '+' => BinaryOperator::Add,
+        '-' => BinaryOperator::Subtract,
+        '*' => BinaryOperator::Multiply,
+        '/' => BinaryOperator::Divide,
+        _ => unreachable!(),
+    };
+    Ok((code, op))
 }
 
 fn literal(code: &str) -> IResult<&str, Expression> {

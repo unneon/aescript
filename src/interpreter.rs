@@ -1,6 +1,6 @@
 pub mod value;
 
-use crate::ast::{Expression, Literal, Program, Statement};
+use crate::ast::{BinaryOperator, Expression, Literal, Program, Statement};
 use crate::interpreter::value::Value;
 use std::collections::HashMap;
 
@@ -18,13 +18,26 @@ pub fn run<'a>(program: &'a Program<'a>) -> HashMap<&'a str, Value> {
 
 pub fn evaluate(expression: &Expression, state: &HashMap<&str, Value>) -> Value {
     match expression {
-        Expression::Add(lhs, rhs) => {
+        Expression::BinaryOperator(lhs, op, rhs) => {
             let lhs = evaluate(lhs, state);
             let rhs = evaluate(rhs, state);
-            match (lhs, rhs) {
-                (Value::Number(lhs), Value::Number(rhs)) => Value::Number(lhs + rhs),
-                (Value::Text(lhs), Value::Text(rhs)) => Value::Text(lhs + &rhs),
-                (lhs, rhs) => panic!("can't add {lhs:?} and {rhs:?}"),
+            match (op, lhs, rhs) {
+                (BinaryOperator::Add, Value::Number(lhs), Value::Number(rhs)) => {
+                    Value::Number(lhs + rhs)
+                }
+                (BinaryOperator::Add, Value::Text(lhs), Value::Text(rhs)) => {
+                    Value::Text(lhs + &rhs)
+                }
+                (BinaryOperator::Subtract, Value::Number(lhs), Value::Number(rhs)) => {
+                    Value::Number(lhs - rhs)
+                }
+                (BinaryOperator::Multiply, Value::Number(lhs), Value::Number(rhs)) => {
+                    Value::Number(lhs * rhs)
+                }
+                (BinaryOperator::Divide, Value::Number(lhs), Value::Number(rhs)) => {
+                    Value::Number(lhs / rhs)
+                }
+                (op, lhs, rhs) => panic!("can't evaluate {lhs:?} {op:?} {rhs:?}"),
             }
         }
         Expression::Literal(literal) => match literal {
