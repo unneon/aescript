@@ -27,6 +27,12 @@ pub fn run<'a>(program: &'a Program<'a>) -> HashMap<&'a str, Value> {
 
 pub fn evaluate(expression: &Expression, state: &HashMap<&str, Value>) -> Value {
     match expression {
+        Expression::Array(subexprs) => Value::Array(
+            subexprs
+                .iter()
+                .map(|subexpr| evaluate(subexpr, state))
+                .collect(),
+        ),
         Expression::BinaryOperator(lhs, op, rhs) => {
             let lhs = evaluate(lhs, state);
             let rhs = evaluate(rhs, state);

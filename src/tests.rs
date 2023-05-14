@@ -113,3 +113,11 @@ fn or() {
     assert_eq!(state["c"], true);
     assert_eq!(state["d"], true);
 }
+
+#[test]
+fn array() {
+    let ast = parse("a = [2, \"test\"]");
+    let state = run(&ast);
+    assert_eq!(state["a"][0], 2);
+    assert_eq!(state["a"][1], "test");
+}

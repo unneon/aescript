@@ -58,7 +58,7 @@ fn expression1(code: &str) -> IResult<&str, Expression> {
 }
 
 fn expression0(code: &str) -> IResult<&str, Expression> {
-    alt((literal, variable))(code)
+    alt((array, literal, variable))(code)
 }
 
 fn binary_expression<'a>(
@@ -129,6 +129,12 @@ fn additive_operator(code: &str) -> IResult<&str, BinaryOperator> {
         _ => unreachable!(),
     };
     Ok((code, op))
+}
+
+fn array(code: &str) -> IResult<&str, Expression> {
+    let (code, elements) =
+        delimited(char('['), separated_list0(tag(", "), expression), char(']'))(code)?;
+    Ok((code, Expression::Array(elements)))
 }
 
 fn literal(code: &str) -> IResult<&str, Expression> {

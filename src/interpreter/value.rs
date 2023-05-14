@@ -1,7 +1,9 @@
 use std::fmt::{Debug, Formatter};
+use std::ops::Index;
 
 #[derive(Clone)]
 pub enum Value {
+    Array(Vec<Value>),
     Bool(bool),
     Number(f64),
     Text(String),
@@ -10,9 +12,21 @@ pub enum Value {
 impl Debug for Value {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
+            Value::Array(values) => Debug::fmt(values, f),
             Value::Bool(bool) => Debug::fmt(bool, f),
             Value::Number(number) => Debug::fmt(number, f),
             Value::Text(text) => Debug::fmt(text, f),
+        }
+    }
+}
+
+impl Index<usize> for Value {
+    type Output = Value;
+
+    fn index(&self, index: usize) -> &Value {
+        match self {
+            Value::Array(elements) => &elements[index],
+            _ => panic!("can't index {self:?}"),
         }
     }
 }
