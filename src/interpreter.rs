@@ -60,6 +60,7 @@ pub fn evaluate(expression: &Expression, state: &HashMap<&str, Value>) -> Value 
             let object = evaluate(&object, state);
             match (object, *member) {
                 (Value::Text(text), "length") => Value::Number(text.len() as f64),
+                (Value::Array(elements), "length") => Value::Number(elements.len() as f64),
                 (object, _) => panic!("unknown member {member:?} of value {object:?}"),
             }
         }

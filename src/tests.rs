@@ -121,3 +121,10 @@ fn array() {
     assert_eq!(state["a"][0], 2);
     assert_eq!(state["a"][1], "test");
 }
+
+#[test]
+fn array_length() {
+    let ast = parse("a = [2, \"test\"].length");
+    let state = run(&ast);
+    assert_eq!(state["a"], 2);
+}
