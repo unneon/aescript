@@ -6,6 +6,8 @@ pub enum BinaryOperator {
     Divide,
     Equal,
     NotEqual,
+    And,
+    Or,
 }
 
 pub enum Literal<'a> {

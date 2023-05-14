@@ -41,6 +41,8 @@ pub fn evaluate(expression: &Expression, state: &HashMap<&str, Value>) -> Value 
                 Equal Text Text => Bool lhs == rhs,
                 NotEqual Number Number => Bool lhs != rhs,
                 NotEqual Text Text => Bool lhs != rhs,
+                And Bool Bool => Bool lhs && rhs,
+                Or Bool Bool => Bool lhs || rhs,
             }
         }
         Expression::Literal(literal) => match literal {

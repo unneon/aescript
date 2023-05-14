@@ -92,3 +92,24 @@ fn equal_text() {
     assert_eq!(state["c"], false);
     assert_eq!(state["d"], true);
 }
+
+#[test]
+fn and() {
+    let ast =
+        parse("a = false and false\nb = false and true\nc = true and false\nd = true and true");
+    let state = run(&ast);
+    assert_eq!(state["a"], false);
+    assert_eq!(state["b"], false);
+    assert_eq!(state["c"], false);
+    assert_eq!(state["d"], true);
+}
+
+#[test]
+fn or() {
+    let ast = parse("a = false or false\nb = false or true\nc = true or false\nd = true or true");
+    let state = run(&ast);
+    assert_eq!(state["a"], false);
+    assert_eq!(state["b"], true);
+    assert_eq!(state["c"], true);
+    assert_eq!(state["d"], true);
+}

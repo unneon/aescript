@@ -34,7 +34,11 @@ fn identifier(code: &str) -> IResult<&str, &str> {
 }
 
 fn expression(code: &str) -> IResult<&str, Expression> {
-    expression4(code)
+    expression5(code)
+}
+
+fn expression5(code: &str) -> IResult<&str, Expression> {
+    alt((logic, expression4))(code)
 }
 
 fn expression4(code: &str) -> IResult<&str, Expression> {
@@ -71,6 +75,10 @@ fn binary_expression<'a>(
     ))
 }
 
+fn logic(code: &str) -> IResult<&str, Expression> {
+    binary_expression(expression4, logic_operator, code)
+}
+
 fn comparison(code: &str) -> IResult<&str, Expression> {
     binary_expression(expression3, comparison_operator, code)
 }
@@ -81,6 +89,16 @@ fn multiplication(code: &str) -> IResult<&str, Expression> {
 
 fn addition(code: &str) -> IResult<&str, Expression> {
     binary_expression(expression1, additive_operator, code)
+}
+
+fn logic_operator(code: &str) -> IResult<&str, BinaryOperator> {
+    let (code, op) = alt((tag("and"), tag("or")))(code)?;
+    let op = match op {
+        "and" => BinaryOperator::And,
+        "or" => BinaryOperator::Or,
+        _ => unreachable!(),
+    };
+    Ok((code, op))
 }
 
 fn comparison_operator(code: &str) -> IResult<&str, BinaryOperator> {
