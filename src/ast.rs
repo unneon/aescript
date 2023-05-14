@@ -6,6 +6,7 @@ pub enum Literal<'a> {
 
 pub enum Expression<'a> {
     Literal(Literal<'a>),
+    Member(Box<Expression<'a>>, &'a str),
     Variable(&'a str),
 }
 

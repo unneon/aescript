@@ -33,6 +33,15 @@ fn identifier(code: &str) -> IResult<&str, &str> {
 }
 
 fn expression(code: &str) -> IResult<&str, Expression> {
+    let (code, base) = unambiguous_expression(code)?;
+    if let Ok((code, member)) = member(code) {
+        Ok((code, Expression::Member(Box::new(base), member)))
+    } else {
+        Ok((code, base))
+    }
+}
+
+fn unambiguous_expression(code: &str) -> IResult<&str, Expression> {
     alt((literal, variable))(code)
 }
 
@@ -59,4 +68,10 @@ fn literal_text(code: &str) -> IResult<&str, Literal> {
 fn variable(code: &str) -> IResult<&str, Expression> {
     let (code, identifier) = identifier(code)?;
     Ok((code, Expression::Variable(identifier)))
+}
+
+fn member(code: &str) -> IResult<&str, &str> {
+    let (code, _) = char('.')(code)?;
+    let (code, member) = identifier(code)?;
+    Ok((code, member))
 }

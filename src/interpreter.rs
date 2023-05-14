@@ -23,6 +23,13 @@ pub fn evaluate(expression: &Expression, state: &HashMap<&str, Value>) -> Value 
             Literal::Number(number) => Value::Number(*number),
             Literal::Text(text) => Value::Text((*text).to_owned()),
         },
+        Expression::Member(object, member) => {
+            let object = evaluate(&object, state);
+            match (&object, *member) {
+                (Value::Text(text), "length") => Value::Number(text.len() as f64),
+                _ => panic!("unknown member {member:?} of value {object:?}"),
+            }
+        }
         Expression::Variable(variable) => state[*variable].clone(),
     }
 }

@@ -29,3 +29,10 @@ fn expression_variable() {
     let state = run(&ast);
     assert_eq!(state["b"], 42);
 }
+
+#[test]
+fn text_length() {
+    let ast = parse("a = \"hello\".length");
+    let state = run(&ast);
+    assert_eq!(state["a"], 5);
+}
