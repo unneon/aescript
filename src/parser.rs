@@ -33,16 +33,26 @@ fn identifier(code: &str) -> IResult<&str, &str> {
 }
 
 fn expression(code: &str) -> IResult<&str, Expression> {
-    let (code, base) = unambiguous_expression(code)?;
-    if let Ok((code, member)) = member(code) {
-        Ok((code, Expression::Member(Box::new(base), member)))
-    } else {
-        Ok((code, base))
-    }
+    expression2(code)
 }
 
-fn unambiguous_expression(code: &str) -> IResult<&str, Expression> {
+fn expression2(code: &str) -> IResult<&str, Expression> {
+    alt((add, expression1))(code)
+}
+
+fn expression1(code: &str) -> IResult<&str, Expression> {
+    alt((member, expression0))(code)
+}
+
+fn expression0(code: &str) -> IResult<&str, Expression> {
     alt((literal, variable))(code)
+}
+
+fn add(code: &str) -> IResult<&str, Expression> {
+    let (code, lhs) = expression1(code)?;
+    let (code, _) = tag(" + ")(code)?;
+    let (code, rhs) = expression1(code)?;
+    Ok((code, Expression::Add(Box::new(lhs), Box::new(rhs))))
 }
 
 fn literal(code: &str) -> IResult<&str, Expression> {
@@ -70,8 +80,9 @@ fn variable(code: &str) -> IResult<&str, Expression> {
     Ok((code, Expression::Variable(identifier)))
 }
 
-fn member(code: &str) -> IResult<&str, &str> {
+fn member(code: &str) -> IResult<&str, Expression> {
+    let (code, object) = expression0(code)?;
     let (code, _) = char('.')(code)?;
     let (code, member) = identifier(code)?;
-    Ok((code, member))
+    Ok((code, Expression::Member(Box::new(object), member)))
 }

@@ -36,3 +36,17 @@ fn text_length() {
     let state = run(&ast);
     assert_eq!(state["a"], 5);
 }
+
+#[test]
+fn add_number() {
+    let ast = parse("a = 2 + 2");
+    let state = run(&ast);
+    assert_eq!(state["a"], 4);
+}
+
+#[test]
+fn add_text() {
+    let ast = parse("a = \"a\" + \"b\"");
+    let state = run(&ast);
+    assert_eq!(state["a"], "ab");
+}

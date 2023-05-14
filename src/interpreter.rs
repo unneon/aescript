@@ -18,6 +18,15 @@ pub fn run<'a>(program: &'a Program<'a>) -> HashMap<&'a str, Value> {
 
 pub fn evaluate(expression: &Expression, state: &HashMap<&str, Value>) -> Value {
     match expression {
+        Expression::Add(lhs, rhs) => {
+            let lhs = evaluate(lhs, state);
+            let rhs = evaluate(rhs, state);
+            match (lhs, rhs) {
+                (Value::Number(lhs), Value::Number(rhs)) => Value::Number(lhs + rhs),
+                (Value::Text(lhs), Value::Text(rhs)) => Value::Text(lhs + &rhs),
+                (lhs, rhs) => panic!("can't add {lhs:?} and {rhs:?}"),
+            }
+        }
         Expression::Literal(literal) => match literal {
             Literal::Bool(bool) => Value::Bool(*bool),
             Literal::Number(number) => Value::Number(*number),
@@ -25,9 +34,9 @@ pub fn evaluate(expression: &Expression, state: &HashMap<&str, Value>) -> Value 
         },
         Expression::Member(object, member) => {
             let object = evaluate(&object, state);
-            match (&object, *member) {
+            match (object, *member) {
                 (Value::Text(text), "length") => Value::Number(text.len() as f64),
-                _ => panic!("unknown member {member:?} of value {object:?}"),
+                (object, _) => panic!("unknown member {member:?} of value {object:?}"),
             }
         }
         Expression::Variable(variable) => state[*variable].clone(),
