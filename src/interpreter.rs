@@ -51,6 +51,14 @@ pub fn evaluate(expression: &Expression, state: &HashMap<&str, Value>) -> Value 
                 Or Bool Bool => Bool lhs || rhs,
             }
         }
+        Expression::Index(array, index) => {
+            let array = evaluate(array, state);
+            let index = evaluate(index, state);
+            match (array, index) {
+                (Value::Array(array), Value::Number(index)) => array[index as usize].clone(),
+                (array, index) => panic!("can't index {array:?} with {index:?}"),
+            }
+        }
         Expression::Literal(literal) => match literal {
             Literal::Bool(bool) => Value::Bool(*bool),
             Literal::Number(number) => Value::Number(*number),

@@ -128,3 +128,11 @@ fn array_length() {
     let state = run(&ast);
     assert_eq!(state["a"], 2);
 }
+
+#[test]
+fn array_index() {
+    let ast = parse("a = [2, \"test\"]\nb = a[0]\nc = a[1]");
+    let state = run(&ast);
+    assert_eq!(state["b"], 2);
+    assert_eq!(state["c"], "test");
+}

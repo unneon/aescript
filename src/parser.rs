@@ -54,7 +54,7 @@ fn expression2(code: &str) -> IResult<&str, Expression> {
 }
 
 fn expression1(code: &str) -> IResult<&str, Expression> {
-    alt((member, expression0))(code)
+    alt((member, index, expression0))(code)
 }
 
 fn expression0(code: &str) -> IResult<&str, Expression> {
@@ -167,4 +167,10 @@ fn member(code: &str) -> IResult<&str, Expression> {
     let (code, _) = char('.')(code)?;
     let (code, member) = identifier(code)?;
     Ok((code, Expression::Member(Box::new(object), member)))
+}
+
+fn index(code: &str) -> IResult<&str, Expression> {
+    let (code, array) = expression0(code)?;
+    let (code, index) = delimited(char('['), expression, char(']'))(code)?;
+    Ok((code, Expression::Index(Box::new(array), Box::new(index))))
 }
