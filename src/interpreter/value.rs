@@ -1,7 +1,8 @@
-use std::fmt::{Debug, Display, Formatter};
+use std::fmt::{Debug, Formatter};
 
 #[derive(Clone)]
 pub enum Value {
+    Bool(bool),
     Number(f64),
     Text(String),
 }
@@ -9,17 +10,18 @@ pub enum Value {
 impl Debug for Value {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
+            Value::Bool(bool) => Debug::fmt(bool, f),
             Value::Number(number) => Debug::fmt(number, f),
             Value::Text(text) => Debug::fmt(text, f),
         }
     }
 }
 
-impl Display for Value {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+impl PartialEq<bool> for Value {
+    fn eq(&self, rhs: &bool) -> bool {
         match self {
-            Value::Number(number) => Display::fmt(number, f),
-            Value::Text(text) => Display::fmt(text, f),
+            Value::Bool(lhs) => lhs == rhs,
+            _ => false,
         }
     }
 }

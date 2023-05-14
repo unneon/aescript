@@ -2,6 +2,14 @@ use crate::interpreter::run;
 use crate::parser::parse;
 
 #[test]
+fn literal_bool() {
+    let ast = parse("a = true\nb = false");
+    let state = run(&ast);
+    assert_eq!(state["a"], true);
+    assert_eq!(state["b"], false);
+}
+
+#[test]
 fn literal_number() {
     let ast = parse("a = 42");
     let state = run(&ast);

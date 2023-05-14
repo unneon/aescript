@@ -1,4 +1,5 @@
 pub enum Literal<'a> {
+    Bool(bool),
     Number(f64),
     Text(&'a str),
 }

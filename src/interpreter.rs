@@ -19,6 +19,7 @@ pub fn run<'a>(program: &'a Program<'a>) -> HashMap<&'a str, Value> {
 pub fn evaluate(expression: &Expression, state: &HashMap<&str, Value>) -> Value {
     match expression {
         Expression::Literal(literal) => match literal {
+            Literal::Bool(bool) => Value::Bool(*bool),
             Literal::Number(number) => Value::Number(*number),
             Literal::Text(text) => Value::Text((*text).to_owned()),
         },

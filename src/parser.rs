@@ -37,8 +37,13 @@ fn expression(code: &str) -> IResult<&str, Expression> {
 }
 
 fn literal(code: &str) -> IResult<&str, Expression> {
-    let (code, literal) = alt((literal_number, literal_text))(code)?;
+    let (code, literal) = alt((literal_bool, literal_number, literal_text))(code)?;
     Ok((code, Expression::Literal(literal)))
+}
+
+fn literal_bool(code: &str) -> IResult<&str, Literal> {
+    let (code, value) = alt((tag("true"), tag("false")))(code)?;
+    Ok((code, Literal::Bool(value == "true")))
 }
 
 fn literal_number(code: &str) -> IResult<&str, Literal> {
