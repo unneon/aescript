@@ -136,3 +136,10 @@ fn array_index() {
     assert_eq!(state["b"], 2);
     assert_eq!(state["c"], "test");
 }
+
+#[test]
+fn func_return() {
+    let ast = parse("func f()\n    return 2\na = f()");
+    let state = run(&ast);
+    assert_eq!(state["a"], 2);
+}

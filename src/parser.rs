@@ -1,10 +1,10 @@
-use crate::ast::{BinaryOperator, Expression, Literal, Program, Statement};
+use crate::ast::{BinaryOperator, Expression, Function, Literal, Program, Statement};
 use nom::branch::alt;
 use nom::bytes::complete::{tag, take_until};
 use nom::character::complete::{alpha1, char, digit1, newline};
 use nom::error::Error;
-use nom::multi::separated_list0;
-use nom::sequence::delimited;
+use nom::multi::{many0, separated_list0};
+use nom::sequence::{delimited, preceded};
 use nom::{IResult, Parser};
 
 pub fn parse(code: &str) -> Program {
@@ -19,7 +19,34 @@ fn program(code: &str) -> IResult<&str, Program> {
 }
 
 fn statement(code: &str) -> IResult<&str, Statement> {
-    alt((assign,))(code)
+    statement1(code)
+}
+
+fn statement1(code: &str) -> IResult<&str, Statement> {
+    alt((function, statement0))(code)
+}
+
+fn statement0(code: &str) -> IResult<&str, Statement> {
+    alt((return_statement, assign))(code)
+}
+
+fn function(code: &str) -> IResult<&str, Statement> {
+    let (code, _) = tag("func ")(code)?;
+    let (code, name) = identifier(code)?;
+    let (code, arguments) =
+        delimited(char('('), separated_list0(tag(", "), identifier), char(')'))(code)?;
+    let (code, statements) = many0(preceded(tag("\n    "), statement0))(code)?;
+    let function = Function {
+        arguments,
+        statements,
+    };
+    Ok((code, Statement::Function(name, function)))
+}
+
+fn return_statement(code: &str) -> IResult<&str, Statement> {
+    let (code, _) = tag("return ")(code)?;
+    let (code, expression) = expression(code)?;
+    Ok((code, Statement::Return(expression)))
 }
 
 fn assign(code: &str) -> IResult<&str, Statement> {
@@ -54,7 +81,7 @@ fn expression2(code: &str) -> IResult<&str, Expression> {
 }
 
 fn expression1(code: &str) -> IResult<&str, Expression> {
-    alt((member, index, expression0))(code)
+    alt((member, index, call, expression0))(code)
 }
 
 fn expression0(code: &str) -> IResult<&str, Expression> {
@@ -173,4 +200,11 @@ fn index(code: &str) -> IResult<&str, Expression> {
     let (code, array) = expression0(code)?;
     let (code, index) = delimited(char('['), expression, char(']'))(code)?;
     Ok((code, Expression::Index(Box::new(array), Box::new(index))))
+}
+
+fn call(code: &str) -> IResult<&str, Expression> {
+    let (code, function) = identifier(code)?;
+    let (code, arguments) =
+        delimited(char('('), separated_list0(tag(", "), expression), char(')'))(code)?;
+    Ok((code, Expression::Call(function, arguments)))
 }

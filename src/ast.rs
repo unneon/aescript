@@ -10,25 +10,38 @@ pub enum BinaryOperator {
     Or,
 }
 
+#[derive(Debug)]
 pub enum Literal<'a> {
     Bool(bool),
     Number(f64),
     Text(&'a str),
 }
 
+#[derive(Debug)]
 pub enum Expression<'a> {
     Array(Vec<Expression<'a>>),
     BinaryOperator(Box<Expression<'a>>, BinaryOperator, Box<Expression<'a>>),
+    Call(&'a str, Vec<Expression<'a>>),
     Index(Box<Expression<'a>>, Box<Expression<'a>>),
     Literal(Literal<'a>),
     Member(Box<Expression<'a>>, &'a str),
     Variable(&'a str),
 }
 
+#[derive(Debug)]
 pub enum Statement<'a> {
     Assign(&'a str, Expression<'a>),
+    Function(&'a str, Function<'a>),
+    Return(Expression<'a>),
 }
 
+#[derive(Debug)]
+pub struct Function<'a> {
+    pub arguments: Vec<&'a str>,
+    pub statements: Vec<Statement<'a>>,
+}
+
+#[derive(Debug)]
 pub struct Program<'a> {
     pub statements: Vec<Statement<'a>>,
 }

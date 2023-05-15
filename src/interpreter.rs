@@ -1,6 +1,6 @@
 pub mod value;
 
-use crate::ast::{BinaryOperator, Expression, Literal, Program, Statement};
+use crate::ast::{BinaryOperator, Expression, Function, Literal, Program, Statement};
 use crate::interpreter::value::Value;
 use std::collections::HashMap;
 
@@ -13,19 +13,53 @@ macro_rules! evalute_binary_expression {
     };
 }
 
+struct State<'a> {
+    variables: HashMap<&'a str, Value>,
+    functions: HashMap<&'a str, &'a Function<'a>>,
+}
+
+impl State<'_> {
+    fn new() -> State<'static> {
+        State {
+            variables: HashMap::new(),
+            functions: HashMap::new(),
+        }
+    }
+}
+
 pub fn run<'a>(program: &'a Program<'a>) -> HashMap<&'a str, Value> {
-    let mut state = HashMap::new();
-    for statement in &program.statements {
+    let mut state = State::new();
+    run_statements(&program.statements, &mut state, false);
+    state.variables
+}
+
+fn run_statements<'a>(
+    statements: &'a [Statement<'a>],
+    state: &mut State<'a>,
+    is_function: bool,
+) -> Option<Value> {
+    for statement in statements {
         match statement {
             Statement::Assign(identifier, expression) => {
-                state.insert(*identifier, evaluate(expression, &state));
+                let value = evaluate(expression, state);
+                state.variables.insert(*identifier, value);
+            }
+            Statement::Function(identifier, function) => {
+                state.functions.insert(*identifier, function);
+            }
+            Statement::Return(expression) => {
+                if is_function {
+                    return Some(evaluate(expression, state));
+                } else {
+                    panic!("can't return in top level function")
+                }
             }
         }
     }
-    state
+    None
 }
 
-pub fn evaluate(expression: &Expression, state: &HashMap<&str, Value>) -> Value {
+fn evaluate(expression: &Expression, state: &State) -> Value {
     match expression {
         Expression::Array(subexprs) => Value::Array(
             subexprs
@@ -51,6 +85,18 @@ pub fn evaluate(expression: &Expression, state: &HashMap<&str, Value>) -> Value 
                 Or Bool Bool => Bool lhs || rhs,
             }
         }
+        Expression::Call(function, arguments) => {
+            assert_eq!(arguments.len(), state.functions[function].arguments.len());
+            let mut call_state = State::new();
+            for (i, argument) in arguments.iter().enumerate() {
+                let arg_name = state.functions[function].arguments[i];
+                let arg_value = evaluate(argument, state);
+                call_state.variables.insert(arg_name, arg_value);
+            }
+            let return_value =
+                run_statements(&state.functions[function].statements, &mut call_state, true);
+            return_value.unwrap()
+        }
         Expression::Index(array, index) => {
             let array = evaluate(array, state);
             let index = evaluate(index, state);
@@ -72,6 +118,6 @@ pub fn evaluate(expression: &Expression, state: &HashMap<&str, Value>) -> Value 
                 (object, _) => panic!("unknown member {member:?} of value {object:?}"),
             }
         }
-        Expression::Variable(variable) => state[*variable].clone(),
+        Expression::Variable(variable) => state.variables[*variable].clone(),
     }
 }
