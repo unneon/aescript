@@ -47,6 +47,17 @@ fn run_statements<'a>(
             Statement::Function(identifier, function) => {
                 state.functions.insert(*identifier, function);
             }
+            Statement::If(condition, statements) => {
+                let cond = match evaluate(condition, state) {
+                    Value::Bool(cond) => cond,
+                    cond => panic!("can't condition if with {cond:?}"),
+                };
+                if cond {
+                    if let Some(return_value) = run_statements(statements, state, is_function) {
+                        return Some(return_value);
+                    }
+                }
+            }
             Statement::Return(expression) => {
                 if is_function {
                     return Some(evaluate(expression, state));

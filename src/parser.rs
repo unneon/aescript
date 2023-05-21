@@ -24,7 +24,7 @@ fn statement(code: &str) -> IResult<&str, Statement> {
 }
 
 fn statement1(code: &str) -> IResult<&str, Statement> {
-    alt((function, while_loop, statement0))(code)
+    alt((function, while_loop, if_statement, statement0))(code)
 }
 
 fn statement0(code: &str) -> IResult<&str, Statement> {
@@ -49,6 +49,13 @@ fn while_loop(code: &str) -> IResult<&str, Statement> {
     let (code, condition) = expression(code)?;
     let (code, statements) = many0(preceded(tag("\n    "), statement0))(code)?;
     Ok((code, Statement::While(condition, statements)))
+}
+
+fn if_statement(code: &str) -> IResult<&str, Statement> {
+    let (code, _) = tag("if ")(code)?;
+    let (code, condition) = expression(code)?;
+    let (code, statements) = many0(preceded(tag("\n    "), statement0))(code)?;
+    Ok((code, Statement::If(condition, statements)))
 }
 
 fn return_statement(code: &str) -> IResult<&str, Statement> {

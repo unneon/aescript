@@ -150,3 +150,10 @@ fn while_simple() {
     let state = run(&ast);
     assert_eq!(state["i"], 5);
 }
+
+#[test]
+fn if_simple() {
+    let ast = parse("i = 0\nif i == 0\n    i = 1\nif i == 0\n    i = 2");
+    let state = run(&ast);
+    assert_eq!(state["i"], 1);
+}
