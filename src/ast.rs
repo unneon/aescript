@@ -33,6 +33,7 @@ pub enum Statement<'a> {
     Assign(&'a str, Expression<'a>),
     Function(&'a str, Function<'a>),
     Return(Expression<'a>),
+    While(Expression<'a>, Vec<Statement<'a>>),
 }
 
 #[derive(Debug)]

@@ -143,3 +143,10 @@ fn func_return() {
     let state = run(&ast);
     assert_eq!(state["a"], 2);
 }
+
+#[test]
+fn while_simple() {
+    let ast = parse("i = 0\nwhile i != 5\n    i = i + 1");
+    let state = run(&ast);
+    assert_eq!(state["i"], 5);
+}

@@ -54,6 +54,18 @@ fn run_statements<'a>(
                     panic!("can't return in top level function")
                 }
             }
+            Statement::While(condition, statements) => loop {
+                let cond = match evaluate(condition, state) {
+                    Value::Bool(cond) => cond,
+                    cond => panic!("can't condition while with {cond:?}"),
+                };
+                if !cond {
+                    break;
+                }
+                if let Some(return_value) = run_statements(statements, state, is_function) {
+                    return Some(return_value);
+                }
+            },
         }
     }
     None

@@ -2,6 +2,7 @@ use crate::ast::{BinaryOperator, Expression, Function, Literal, Program, Stateme
 use nom::branch::alt;
 use nom::bytes::complete::{tag, take_until};
 use nom::character::complete::{alpha1, char, digit1, newline};
+use nom::combinator::cut;
 use nom::error::Error;
 use nom::multi::{many0, separated_list0};
 use nom::sequence::{delimited, preceded};
@@ -14,7 +15,7 @@ pub fn parse(code: &str) -> Program {
 }
 
 fn program(code: &str) -> IResult<&str, Program> {
-    let (code, statements) = separated_list0(newline, statement)(code)?;
+    let (code, statements) = separated_list0(newline, cut(statement))(code)?;
     Ok((code, Program { statements }))
 }
 
@@ -23,7 +24,7 @@ fn statement(code: &str) -> IResult<&str, Statement> {
 }
 
 fn statement1(code: &str) -> IResult<&str, Statement> {
-    alt((function, statement0))(code)
+    alt((function, while_loop, statement0))(code)
 }
 
 fn statement0(code: &str) -> IResult<&str, Statement> {
@@ -41,6 +42,13 @@ fn function(code: &str) -> IResult<&str, Statement> {
         statements,
     };
     Ok((code, Statement::Function(name, function)))
+}
+
+fn while_loop(code: &str) -> IResult<&str, Statement> {
+    let (code, _) = tag("while ")(code)?;
+    let (code, condition) = expression(code)?;
+    let (code, statements) = many0(preceded(tag("\n    "), statement0))(code)?;
+    Ok((code, Statement::While(condition, statements)))
 }
 
 fn return_statement(code: &str) -> IResult<&str, Statement> {
