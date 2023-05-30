@@ -157,3 +157,11 @@ fn if_simple() {
     let state = run(&ast);
     assert_eq!(state["i"], 1);
 }
+
+#[test]
+fn text_starts_with() {
+    let ast = parse("a = \"hello\"\nb = a.starts_with(\"he\")\nc = a.starts_with(\"ha\")");
+    let state = run(&ast);
+    assert_eq!(state["b"], true);
+    assert_eq!(state["c"], false);
+}

@@ -31,6 +31,15 @@ impl Index<usize> for Value {
     }
 }
 
+impl PartialEq<&[i32]> for Value {
+    fn eq(&self, rhs: &&[i32]) -> bool {
+        match self {
+            Value::Array(elements) => elements == rhs,
+            _ => false,
+        }
+    }
+}
+
 impl PartialEq<bool> for Value {
     fn eq(&self, rhs: &bool) -> bool {
         match self {

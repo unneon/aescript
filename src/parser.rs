@@ -1,7 +1,7 @@
 use crate::ast::{BinaryOperator, Expression, Function, Literal, Program, Statement};
 use nom::branch::alt;
-use nom::bytes::complete::{tag, take_until};
-use nom::character::complete::{alpha1, char, digit1, newline};
+use nom::bytes::complete::{tag, take_until, take_while1};
+use nom::character::complete::{char, digit1, newline};
 use nom::combinator::cut;
 use nom::error::Error;
 use nom::multi::{many0, separated_list0};
@@ -72,7 +72,7 @@ fn assign(code: &str) -> IResult<&str, Statement> {
 }
 
 fn identifier(code: &str) -> IResult<&str, &str> {
-    alpha1(code)
+    take_while1(|c: char| c.is_ascii_lowercase() || c == '_')(code)
 }
 
 fn expression(code: &str) -> IResult<&str, Expression> {
@@ -96,7 +96,7 @@ fn expression2(code: &str) -> IResult<&str, Expression> {
 }
 
 fn expression1(code: &str) -> IResult<&str, Expression> {
-    alt((member, index, call, expression0))(code)
+    alt((method, member, index, call, expression0))(code)
 }
 
 fn expression0(code: &str) -> IResult<&str, Expression> {
@@ -204,6 +204,15 @@ fn variable(code: &str) -> IResult<&str, Expression> {
     Ok((code, Expression::Variable(identifier)))
 }
 
+fn method(code: &str) -> IResult<&str, Expression> {
+    let (code, object) = expression0(code)?;
+    let (code, _) = char('.')(code)?;
+    let (code, method) = identifier(code)?;
+    let (code, arguments) = call_arguments(code)?;
+    let method_call = Expression::MethodCall(Box::new(object), method, arguments);
+    Ok((code, method_call))
+}
+
 fn member(code: &str) -> IResult<&str, Expression> {
     let (code, object) = expression0(code)?;
     let (code, _) = char('.')(code)?;
@@ -219,7 +228,10 @@ fn index(code: &str) -> IResult<&str, Expression> {
 
 fn call(code: &str) -> IResult<&str, Expression> {
     let (code, function) = identifier(code)?;
-    let (code, arguments) =
-        delimited(char('('), separated_list0(tag(", "), expression), char(')'))(code)?;
+    let (code, arguments) = call_arguments(code)?;
     Ok((code, Expression::Call(function, arguments)))
+}
+
+fn call_arguments(code: &str) -> IResult<&str, Vec<Expression>> {
+    delimited(char('('), separated_list0(tag(", "), expression), char(')'))(code)
 }

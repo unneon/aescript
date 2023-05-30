@@ -25,6 +25,7 @@ pub enum Expression<'a> {
     Index(Box<Expression<'a>>, Box<Expression<'a>>),
     Literal(Literal<'a>),
     Member(Box<Expression<'a>>, &'a str),
+    MethodCall(Box<Expression<'a>>, &'a str, Vec<Expression<'a>>),
     Variable(&'a str),
 }
 

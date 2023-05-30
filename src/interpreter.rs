@@ -141,6 +141,23 @@ fn evaluate(expression: &Expression, state: &State) -> Value {
                 (object, _) => panic!("unknown member {member:?} of value {object:?}"),
             }
         }
+        Expression::MethodCall(object, method, arguments) => {
+            match (evaluate(object, state), *method, arguments.as_slice()) {
+                (Value::Text(haystack), "starts_with", [needle]) => {
+                    let needle = match evaluate(needle, state) {
+                        Value::Text(needle) => needle,
+                        needle => {
+                            panic!("can't call method starts_with of text with argument {needle:?}")
+                        }
+                    };
+                    Value::Bool(haystack.starts_with(&needle))
+                }
+                (object, method, args) => panic!(
+                    "unknown method {method:?} of value {object:?} with {} arguments",
+                    args.len()
+                ),
+            }
+        }
         Expression::Variable(variable) => state.variables[*variable].clone(),
     }
 }
